@@ -6,8 +6,9 @@
   <arg name="enable_gps" default="false" />
   <arg name="enable_imu_acc" default="false" />
   <arg name="enable_imu_ori" default="false" />
-  <arg name="points_topic" default="/velodyne_points" />
+  <arg name="points_topic" default="/hokuyo3d/hokuyo_cloud2" />
 
+  <!-- arg name="points_topic" default="/velodyne_points" /-->
   <!-- transformation between lidar and base_link -->
   <node pkg="tf" type="static_transform_publisher" name="lidar2base_publisher" args="0 0 0 0 0 0 base_link hokuyo3d 10" />
 
@@ -16,7 +17,8 @@
 
   <!-- prefiltering_nodelet -->
   <node pkg="nodelet" type="nodelet" name="prefiltering_nodelet" args="load hdl_graph_slam/PrefilteringNodelet $(arg nodelet_manager)">
-    <remap from="/velodyne_points" to="/hokuyo3d/hokuyo_cloud2" />
+    <!-- remap from="/velodyne_points" to="/hokuyo3d/hokuyo_cloud2" /-->
+    <remap from="/velodyne_points" to="$(arg points_topic)" />
     <!-- in case base_link_frame is blank, mapping will be performed in the lidar frame -->
     <param name="base_link_frame" value="base_link" />
     <!-- distance filter -->
@@ -57,11 +59,11 @@
   <node pkg="nodelet" type="nodelet" name="floor_detection_nodelet" args="load hdl_graph_slam/FloorDetectionNodelet $(arg nodelet_manager)" if="$(arg enable_floor_detection)">
     <param name="points_topic" value="$(arg points_topic)" />
     <param name="tilt_deg" value="0.0" />
-    <param name="sensor_height" value="1.5" />
+    <param name="sensor_height" value="1.0" />
     <param name="height_clip_range" value="0.5" />
-    <param name="floor_pts_thresh" value="256" />
+    <param name="floor_pts_thresh" value="1024" />
     <param name="use_normal_filtering" value="true" />
-    <param name="normal_filter_thresh" value="20.0" />
+    <param name="normal_filter_thresh" value="10.0" />
   </node>
 
   <!-- hdl_graph_slam_nodelet -->
@@ -133,6 +135,6 @@
 
   <node pkg="hdl_graph_slam" type="map2odom_publisher.py" name="map2odom_publisher" />
 
-  <node name="rviz" pkg="rviz" type="rviz" required="true" args="-d $(find hdl_graph_slam)/rviz/hdl_graph_slam.rviz"/>
+  <node name="rviz" pkg="rviz" type="rviz" required="true" args="-d $(find hdl_graph_slam)/rviz/hokuyo3d.rviz"/>
 
 </launch>
